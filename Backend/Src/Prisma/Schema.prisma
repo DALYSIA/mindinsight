@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  studies   Study[]
+}
+
+model Study {
+  id          String   @id @default(uuid())
+  title       String
+  message     String
+  adminId     String
+  admin       Admin    @relation(fields: [adminId], references: [id], onDelete: CASCADE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  links       Link[]
+  replies     Reply[]
+  
+  @@index([adminId])
+}
+
+model Link {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  studyId    String
+  study      Study    @relation(fields: [studyId], references: [id], onDelete: CASCADE)
+  contactId  String   @unique
+  contactName String?
+  contactPhone String?
+  isUsed     Boolean  @default(false)
+  sentAt     DateTime?
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+  
+  reply      Reply?
+  
+  @@index([studyId])
+  @@index([token])
+}
+
+model Reply {
+  id         String   @id @default(uuid())
+  content    String   @db.Text
+  studyId    String
+  study      Study    @relation(fields: [studyId], references: [id], onDelete: CASCADE)
+  linkId     String   @unique
+  link       Link     @relation(fields: [linkId], references: [id], onDelete: CASCADE)
+  createdAt  DateTime @default(now())
+  
+  @@index([studyId])
+}
